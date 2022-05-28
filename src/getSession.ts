@@ -14,9 +14,16 @@ const retrieveSession = async ({
   password,
 }: Credentials): Promise<Session> => {
   const loaderInterval = setInterval(() => process.stdout.write('. '), 500);
+
+  const chromeOptions = new chrome.Options()
+    .addArguments('--disable-dev-shm-usage')
+    .addArguments('--no-sandbox')
+    .addArguments('--disable-gpu')
+    .addArguments('--headless');
+
   const driver = await new Builder()
     .forBrowser('chrome')
-    .setChromeOptions(new chrome.Options().addArguments('--headless'))
+    .setChromeOptions(chromeOptions)
     .build();
   try {
     await driver.get('https://my.edfenergy.com/user/login');
@@ -29,7 +36,7 @@ const retrieveSession = async ({
     await driver.findElement(By.linkText('View account')).sendKeys(Key.ENTER);
     const cookies = await driver.manage().getCookies();
     const sessionCookie = cookies.find((cookie) => cookie.name.startsWith('SSESS'));
-    if (!sessionCookie) throw new Error('Cannot find cookie with session value');
+    if (!sessionCookie) { throw new Error('Cannot find cookie with session value'); }
     const { name, value } = sessionCookie;
     const expire = now(300);
     return { name, value, expire };
@@ -41,7 +48,9 @@ const retrieveSession = async ({
 
 const getSession = async (credentials: Credentials): Promise<Session> => {
   if (!session || session.expire < now()) {
-    if (!retrieveSessionPromise) { retrieveSessionPromise = retrieveSession(credentials); }
+    if (!retrieveSessionPromise) {
+      retrieveSessionPromise = retrieveSession(credentials);
+    }
     session = await retrieveSessionPromise;
     retrieveSessionPromise = null;
   }
