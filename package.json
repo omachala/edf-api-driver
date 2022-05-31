@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "yarn ts-node --require dotenv/config index.ts",
-    "start:d": "nodemon --require dotenv/config index.ts"
+    "start:d": "pm2 start pm2.config.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
